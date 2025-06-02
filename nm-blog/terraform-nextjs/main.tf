@@ -1,6 +1,6 @@
 #s3 Bucket Resource
 resource "aws_s3_bucket" "website" {
-  bucket = "nilaj-terraform-website"
+  bucket = "nilaj-nextjs-website"
 
   tags = {
     Name = "Portfolio Website"
@@ -53,18 +53,17 @@ resource "aws_s3_bucket_website_configuration" "website-policy" {
 resource "aws_s3_bucket_policy" "website_policy" {
   bucket = aws_s3_bucket.website.id
 
-  policy = jsondecode(({
+  policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
-        {
-            Sid = "PublicReadGetObject"
-            Effect = "Allow"
-            Principal = "*"
-            Action = "s3:GetObject"
-            Resource = "${aws_s3_bucket.website.arn}/*"
-        }
+      {
+        Effect = "Allow"
+        Principal = "*"
+        Action = "s3:GetObject"
+        Resource = "${aws_s3_bucket.website.arn}/*"
+      }
     ]
-  }))
+  })
 }
 
 # Origin Access Identity
@@ -92,7 +91,7 @@ resource "aws_cloudfront_distribution" "website_distribution" {
   default_cache_behavior {
     allowed_methods = ["GET", "HEAD", "OPTIONS"]
     cached_methods = [ "GET", "HEAD" ]
-    target_origin_id = "S3-Website"
+    target_origin_id = "S3-website-bucket"
 
     forwarded_values {
       query_string = false
@@ -109,13 +108,13 @@ resource "aws_cloudfront_distribution" "website_distribution" {
 
   restrictions {
     geo_restriction {
-      restriction_type = none
+      restriction_type = "none"
     }
   }
 
   viewer_certificate {
     
     cloudfront_default_certificate = true
-    
+
   }
 }
